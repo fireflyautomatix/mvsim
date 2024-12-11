@@ -184,7 +184,7 @@ std::vector<double> DynamicsAckermann::invoke_motor_controllers(const TSimulCont
 		// Ackermann formulas for inner&outer weels turning angles wrt the
 		// equivalent (central) one:
 		computeFrontWheelAngles(
-			co.steer_ang, wheels_info_[WHEEL_FL].yaw, wheels_info_[WHEEL_FR].yaw);
+			co.steer_ang, wheels_info_[WHEEL_RL].yaw, wheels_info_[WHEEL_RR].yaw);
 	}
 	return out_torque_per_wheel;
 }

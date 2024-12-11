@@ -60,45 +60,45 @@ void DynamicsAckermann::ControllerTwistFrontSteerPID::control_step(
 
 	// Rotate to obtain the actual desired longitudinal velocity for each wheel:
 	// FL:
-	double vel_fl, vel_fr;
-	double desired_fl_steer_ang, desired_fr_steer_ang;
-	veh_.computeFrontWheelAngles(co.steer_ang, desired_fl_steer_ang, desired_fr_steer_ang);
+	double vel_rl, vel_rr;
+	double desired_rl_steer_ang, desired_rr_steer_ang;
+	veh_.computeFrontWheelAngles(co.steer_ang, desired_rl_steer_ang, desired_rr_steer_ang);
 	{
-		const mrpt::poses::CPose2D wRotInv(0, 0, -desired_fl_steer_ang);
+		const mrpt::poses::CPose2D wRotInv(0, 0, -desired_rl_steer_ang);
 		mrpt::math::TPoint2D vel_w;
-		wRotInv.composePoint(desired_wheel_vels[DynamicsAckermann::WHEEL_FL], vel_w);
-		vel_fl = vel_w.x;
+		wRotInv.composePoint(desired_wheel_vels[DynamicsAckermann::WHEEL_RL], vel_w);
+		vel_rl = vel_w.x;
 	}
 	{
-		const mrpt::poses::CPose2D wRotInv(0, 0, -desired_fr_steer_ang);
+		const mrpt::poses::CPose2D wRotInv(0, 0, -desired_rr_steer_ang);
 		mrpt::math::TPoint2D vel_w;
-		wRotInv.composePoint(desired_wheel_vels[DynamicsAckermann::WHEEL_FR], vel_w);
-		vel_fr = vel_w.x;
+		wRotInv.composePoint(desired_wheel_vels[DynamicsAckermann::WHEEL_RR], vel_w);
+		vel_rr = vel_w.x;
 	}
 
 	// Compute each wheel actual velocity (from an "odometry" estimation of
 	// velocity, not ground-truth!):
-	double act_vel_fl, act_vel_fr;
+	double act_vel_rl, act_vel_rr;
 	{
 		// In local vehicle frame:
 		const std::vector<mrpt::math::TVector2D> odo_wheel_vels =
 			veh_.getWheelsVelocityLocal(veh_.getVelocityLocalOdoEstimate());
 		ASSERT_(odo_wheel_vels.size() == 4);
 
-		const double actual_fl_steer_ang = veh_.getWheelInfo(DynamicsAckermann::WHEEL_FL).yaw;
-		const double actual_fr_steer_ang = veh_.getWheelInfo(DynamicsAckermann::WHEEL_FR).yaw;
+		const double actual_rl_steer_ang = veh_.getWheelInfo(DynamicsAckermann::WHEEL_RL).yaw;
+		const double actual_rr_steer_ang = veh_.getWheelInfo(DynamicsAckermann::WHEEL_RR).yaw;
 
 		{
-			const mrpt::poses::CPose2D wRotInv(0, 0, -actual_fl_steer_ang);
+			const mrpt::poses::CPose2D wRotInv(0, 0, -actual_rl_steer_ang);
 			mrpt::math::TPoint2D vel_w;
-			wRotInv.composePoint(odo_wheel_vels[DynamicsAckermann::WHEEL_FL], vel_w);
-			act_vel_fl = vel_w.x;
+			wRotInv.composePoint(odo_wheel_vels[DynamicsAckermann::WHEEL_RL], vel_w);
+			act_vel_rl = vel_w.x;
 		}
 		{
-			const mrpt::poses::CPose2D wRotInv(0, 0, -actual_fr_steer_ang);
+			const mrpt::poses::CPose2D wRotInv(0, 0, -actual_rr_steer_ang);
 			mrpt::math::TPoint2D vel_w;
-			wRotInv.composePoint(odo_wheel_vels[DynamicsAckermann::WHEEL_FR], vel_w);
-			act_vel_fr = vel_w.x;
+			wRotInv.composePoint(odo_wheel_vels[DynamicsAckermann::WHEEL_RR], vel_w);
+			act_vel_rr = vel_w.x;
 		}
 	}
 
@@ -111,12 +111,12 @@ void DynamicsAckermann::ControllerTwistFrontSteerPID::control_step(
 		PID_[i].max_out = max_torque;
 	}
 
-	co.rl_torque = .0;
-	co.rr_torque = .0;
-	co.fl_torque = -PID_[0].compute(
-		vel_fl - act_vel_fl,
+	co.fl_torque = .0;
+	co.fr_torque = .0;
+	co.rl_torque = -PID_[0].compute(
+		vel_rl - act_vel_rl,
 		ci.context.dt);	 // "-" because \tau<0 makes robot moves forwards.
-	co.fr_torque = -PID_[1].compute(vel_fr - act_vel_fr, ci.context.dt);
+	co.rr_torque = -PID_[1].compute(vel_rr - act_vel_rr, ci.context.dt);
 }
 
 void DynamicsAckermann::ControllerTwistFrontSteerPID::load_config(

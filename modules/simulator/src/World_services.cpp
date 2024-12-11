@@ -56,9 +56,10 @@ mvsim_msgs::SrvSetPoseAnswer World::srv_set_pose(const mvsim_msgs::SrvSetPose& r
 		}
 		else
 		{
+			auto current_pose = itV->second->getPose();
 			itV->second->setPose(
-				{req.pose().x(), req.pose().y(), req.pose().z(), req.pose().yaw(),
-				 req.pose().pitch(), req.pose().roll()});
+				{req.pose().x(), req.pose().y(), current_pose.z, req.pose().yaw(),
+				 current_pose.pitch, current_pose.roll});
 		}
 		ans.set_success(true);
 		ans.set_objectisincollision(itV->second->hadCollision());
